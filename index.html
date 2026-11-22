@@ -115,12 +115,13 @@ const CMD_TYPE = { "/함수": "func", "/한줄": "line", "/출력": "out" };
 const $ = (id) => document.getElementById(id);
 const log = $("log"), inp = $("inp");
 
-const store = JSON.parse(localStorage.getItem("swai-quiz") || "{}");
+let store = {};
+try { store = JSON.parse(localStorage.getItem("swai-quiz") || "{}"); } catch (e) {}
 const st = Object.assign({ ok: 0, all: 0, streak: 0, wrong: [], cats: [] }, store);
 let cur = null, curIdx = -1, mode = null, wrongMode = false, lastFb = null;
 const recent = [];
 
-function save() { localStorage.setItem("swai-quiz", JSON.stringify(st)); }
+function save() { try { localStorage.setItem("swai-quiz", JSON.stringify(st)); } catch (e) {} }
 function esc(s) { return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 
 function renderScore() {
