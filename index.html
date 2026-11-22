@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>데이터분석 파이썬 퀴즈</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --text: #1d2330; --muted: #6b7280;
+    --line: #e3e6eb; --accent: #2f6fde; --ok: #1a8f4c; --ok-bg: #e8f6ee;
+    --no: #c8372d; --no-bg: #fcecea; --code: #f1f3f6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14171c; --card: #1d2128; --text: #e7e9ee; --muted: #9aa1ad;
+      --line: #2c323b; --accent: #6b9cf0; --ok: #4cc283; --ok-bg: #16301f;
+      --no: #ef7a70; --no-bg: #3a1c1a; --code: #262b33;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 20px 16px 180px; }
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  h1 { font-size: 20px; margin: 0; }
+  .score { color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+  .score b { color: var(--text); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 6px; }
+  .chip {
+    border: 1px solid var(--line); background: var(--card); color: var(--text);
+    padding: 5px 11px; border-radius: 999px; font-size: 13px; cursor: pointer;
+  }
+  .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chip .n { opacity: .65; margin-left: 3px; font-size: 12px; }
+  .log { margin-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
+  }
+  .meta { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .q { font-weight: 600; }
+  pre {
+    background: var(--code); border-radius: 8px; padding: 10px 12px; margin: 10px 0 0;
+    font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-x: auto;
+  }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .me { align-self: flex-end; max-width: 85%; background: var(--accent); color: #fff;
+        border-radius: 12px; padding: 8px 12px; white-space: pre-wrap;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; }
+  .fb { border-radius: 12px; padding: 12px 16px; }
+  .fb.ok { background: var(--ok-bg); }
+  .fb.no { background: var(--no-bg); }
+  .fb .head { font-weight: 700; }
+  .fb.ok .head { color: var(--ok); }
+  .fb.no .head { color: var(--no); }
+  .fb pre { background: rgba(127,127,127,.12); }
+  .tip { margin-top: 6px; font-size: 14px; }
+  .override { margin-top: 8px; font-size: 12px; background: none; border: 0; color: var(--muted);
+              text-decoration: underline; cursor: pointer; padding: 0; }
+  .bar {
+    position: fixed; left: 0; right: 0; bottom: 0; background: var(--bg);
+    border-top: 1px solid var(--line); padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  }
+  .bar-in { max-width: 720px; margin: 0 auto; }
+  .cmds { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+  .cmd { border: 1px solid var(--line); background: var(--card); color: var(--text);
+         border-radius: 8px; padding: 5px 10px; font-size: 13px; cursor: pointer; }
+  .cmd.wrong { margin-left: auto; }
+  form { display: flex; gap: 8px; }
+  textarea {
+    flex: 1; resize: none; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+    background: var(--card); color: var(--text);
+    font: 15px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; min-height: 44px;
+  }
+  textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .send { border: 0; background: var(--accent); color: #fff; border-radius: 10px; padding: 0 18px;
+          font-size: 15px; font-weight: 600; cursor: pointer; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>데이터분석 파이썬 퀴즈</h1>
+    <div class="score">정답 <b id="sOk">0</b> / <b id="sAll">0</b> · 연속 <b id="sStreak">0</b> · 오답노트 <b id="sWrong">0</b></div>
+  </header>
+  <div class="chips" id="chips"></div>
+  <div class="log" id="log"></div>
+</div>
+
+<div class="bar">
+  <div class="bar-in">
+    <div class="cmds">
+      <button class="cmd" data-cmd="/퀴즈">/퀴즈</button>
+      <button class="cmd" data-cmd="/함수">/함수</button>
+      <button class="cmd" data-cmd="/한줄">/한줄</button>
+      <button class="cmd" data-cmd="/출력">/출력</button>
+      <button class="cmd" data-cmd="/패스">/패스</button>
+      <button class="cmd wrong" data-cmd="/오답">/오답</button>
+    </div>
+    <form id="f">
+      <textarea id="inp" rows="1" placeholder="답 또는 코드 입력 (Enter 제출, Shift+Enter 줄바꿈)" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+      <button class="send" type="submit">제출</button>
+    </form>
+    <div class="hint">/퀴즈 아무거나 · /함수 이름 맞추기 · /한줄 코드 작성 · /출력 결과·shape · /패스(/모르겠음) 정답 보기 · /오답 틀린 문제만</div>
+  </div>
+</div>
+
+<script src="questions.js"></script>
+<script>
+const TYPE_LABEL = { func: "함수/파라미터", line: "한 줄 코딩", out: "출력·shape" };
+const CMD_TYPE = { "/함수": "func", "/한줄": "line", "/출력": "out" };
+const $ = (id) => document.getElementById(id);
+const log = $("log"), inp = $("inp");
+
+const store = JSON.parse(localStorage.getItem("swai-quiz") || "{}");
+const st = Object.assign({ ok: 0, all: 0, streak: 0, wrong: [], cats: [] }, store);
+let cur = null, curIdx = -1, mode = null, wrongMode = false, lastFb = null;
+const recent = [];
+
+function save() { localStorage.setItem("swai-quiz", JSON.stringify(st)); }
+function esc(s) { return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function renderScore() {
+  $("sOk").textContent = st.ok; $("sAll").textContent = st.all;
+  $("sStreak").textContent = st.streak; $("sWrong").textContent = st.wrong.length;
+}
+
+function renderChips() {
+  const cats = [...new Set(QUESTIONS.map(q => q.cat))];
+  const box = $("chips"); box.innerHTML = "";
+  const mk = (label, n, on, fn) => {
+    const b = document.createElement("button");
+    b.className = "chip" + (on ? " on" : "");
+    b.innerHTML = esc(label) + `<span class="n">${n}</span>`;
+    b.onclick = fn; box.appendChild(b);
+  };
+  mk("전체", QUESTIONS.length, st.cats.length === 0, () => { st.cats = []; save(); renderChips(); });
+  cats.forEach(c => {
+    const n = QUESTIONS.filter(q => q.cat === c).length;
+    mk(c, n, st.cats.includes(c), () => {
+      st.cats = st.cats.includes(c) ? st.cats.filter(x => x !== c) : [...st.cats, c];
+      save(); renderChips();
+    });
+  });
+}
+
+function pool(type) {
+  let idx = QUESTIONS.map((_, i) => i);
+  if (wrongMode) idx = idx.filter(i => st.wrong.includes(i));
+  if (st.cats.length) idx = idx.filter(i => st.cats.includes(QUESTIONS[i].cat));
+  if (type) idx = idx.filter(i => QUESTIONS[i].type === type);
+  return idx;
+}
+
+function addNode(html, cls) {
+  const d = document.createElement("div");
+  d.className = cls; d.innerHTML = html;
+  log.appendChild(d);
+  while (log.children.length > 40) log.removeChild(log.firstChild);
+  d.scrollIntoView({ behavior: "smooth", block: "end" });
+  return d;
+}
+
+function say(text) { addNode(esc(text), "card"); }
+
+function ask(type) {
+  if (type !== undefined) mode = type;
+  let idx = pool(mode);
+  if (!idx.length && wrongMode) { wrongMode = false; say("오답노트를 다 풀었어요! 일반 문제로 돌아갑니다."); idx = pool(mode); }
+  if (!idx.length) { say("이 조건에 맞는 문제가 없어요. 과목 선택을 바꿔보세요."); return; }
+  const fresh = idx.filter(i => !recent.includes(i));
+  const pick = (fresh.length ? fresh : idx)[Math.floor(Math.random() * (fresh.length || idx.length))];
+  recent.push(pick); if (recent.length > Math.min(30, Math.floor(QUESTIONS.length / 2))) recent.shift();
+  curIdx = pick; cur = QUESTIONS[pick];
+  const n = st.all + 1;
+  addNode(
+    `<div class="meta">Q${n} · ${esc(cur.cat)} · ${TYPE_LABEL[cur.type]}${wrongMode ? " · 오답노트" : ""}</div>` +
+    `<div class="q">${esc(cur.q)}</div>` + (cur.code ? `<pre>${esc(cur.code)}</pre>` : ""),
+    "card"
+  );
+  inp.focus();
+}
+
+function norm(s, type) {
+  s = s.trim()
+    .replace(/[‘’`]/g, "'").replace(/[“”"]/g, "'")
+    .replace(/;+\s*$/, "").toLowerCase();
+  if (type === "func") {
+    s = s.replace(/\s+/g, "").replace(/'/g, "");
+    if (!s.includes("=")) {
+      s = s.split("(")[0];               // savefig('a.png') -> savefig
+      s = s.substring(s.lastIndexOf(".") + 1); // np.random.seed -> seed
+    }
+    return s;
+  }
+  return s.replace(/\s+/g, "");
+}
+
+function check(text) {
+  const tries = [text];
+  if (cur.type === "func" && text.includes("=")) {
+    const p = text.split("=")[0];        // figsize=(10,6) -> figsize
+    tries.push(p, p.split("(").pop());   // plt.figure(figsize -> figsize
+  }
+  const acc = cur.a.map(a => norm(a, cur.type));
+  return tries.some(t => acc.includes(norm(t, cur.type)));
+}
+
+function feedback(ok, passed) {
+  const q = cur, qi = curIdx;
+  st.all++;
+  if (ok) { st.ok++; st.streak++; st.wrong = st.wrong.filter(i => i !== qi); }
+  else { st.streak = 0; if (!st.wrong.includes(qi)) st.wrong.push(qi); }
+  save(); renderScore();
+  const head = passed ? "패스 — 정답 확인" : ok ? "정답!" : "아쉬워요, 오답";
+  const node = addNode(
+    `<div class="head">${head}</div>` +
+    `<pre>${esc(q.ans)}</pre>` +
+    `<div class="tip">💡 ${esc(q.tip)}</div>` +
+    (!ok && !passed ? `<button class="override">내 답도 맞아요 (정답 처리)</button>` : ""),
+    "fb " + (ok ? "ok" : "no")
+  );
+  const btn = node.querySelector(".override");
+  if (btn) btn.onclick = () => {
+    st.ok++; st.streak = 1; st.wrong = st.wrong.filter(i => i !== qi);
+    save(); renderScore();
+    node.className = "fb ok"; node.querySelector(".head").textContent = "정답 처리했어요";
+    btn.remove();
+  };
+  cur = null;
+  ask();
+}
+
+function handle(raw) {
+  const text = raw.trim();
+  if (!text) return;
+  const cmd = text.split(/\s+/)[0];
+  if (cmd === "/퀴즈") { wrongMode = false; return ask(null); }
+  if (CMD_TYPE[cmd]) { wrongMode = false; return ask(CMD_TYPE[cmd]); }
+  if (cmd === "/오답") {
+    if (!st.wrong.length) return say("오답노트가 비어 있어요.");
+    wrongMode = true; return ask(null);
+  }
+  if (cmd === "/패스" || cmd === "/모르겠음") {
+    if (!cur) return ask();
+    addNode(esc(text), "me"); return feedback(false, true);
+  }
+  if (cmd === "/초기화") {
+    Object.assign(st, { ok: 0, all: 0, streak: 0, wrong: [] }); save(); renderScore();
+    return say("점수와 오답노트를 초기화했어요.");
+  }
+  if (!cur) return ask();
+  addNode(esc(text), "me");
+  feedback(check(text), false);
+}
+
+$("f").onsubmit = (e) => { e.preventDefault(); handle(inp.value); inp.value = ""; inp.rows = 1; };
+inp.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("f").requestSubmit(); }
+});
+inp.addEventListener("input", () => { inp.rows = Math.min(4, inp.value.split("\n").length); });
+document.querySelectorAll(".cmd").forEach(b => b.onclick = () => handle(b.dataset.cmd));
+
+renderScore(); renderChips();
+say(`수업자료 기반 문제 ${QUESTIONS.length}개. 답을 입력하면 바로 채점하고 다음 문제가 나와요. 함수 이름은 np. / pd. 같은 접두어나 ()를 빼고 써도 됩니다.`);
+ask(null);
+</script>
+</body>
+</html>
