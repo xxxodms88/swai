@@ -78,16 +78,57 @@
   .send { border: 0; background: var(--accent); color: #fff; border-radius: 10px; padding: 0 18px;
           font-size: 15px; font-weight: 600; cursor: pointer; }
   .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .tabs { display: flex; gap: 4px; background: var(--line); padding: 3px; border-radius: 10px; }
+  .tab { border: 0; background: none; color: var(--muted); padding: 7px 16px; border-radius: 8px;
+         font-size: 14px; font-weight: 600; cursor: pointer; min-height: 36px; }
+  .tab.on { background: var(--card); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  body.study .bar, body.study #quizView, body.study .score { display: none; }
+  body:not(.study) #studyView { display: none; }
+  #studyView { padding-bottom: 0; }
+  .prog { margin: 14px 0 4px; font-size: 13px; color: var(--muted); }
+  .prog .track { height: 6px; background: var(--line); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+  .prog .fill { height: 100%; background: var(--ok); width: 0; transition: width .3s; }
+  .units { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+  .unit { display: flex; align-items: center; gap: 12px; text-align: left; width: 100%;
+          border: 1px solid var(--line); background: var(--card); color: var(--text);
+          border-radius: 10px; padding: 10px 14px; cursor: pointer; font-size: 15px; min-height: 52px; }
+  .unit:hover { border-color: var(--accent); }
+  .unit .num { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+               background: var(--line); font-size: 13px; font-weight: 700; }
+  .unit.done .num { background: var(--ok); color: #fff; }
+  .unit .t { flex: 1; }
+  .unit .c { font-size: 12px; color: var(--muted); }
+  .stage { font-size: 12px; color: var(--muted); margin: 14px 0 0; font-weight: 600; }
+  .lesson h2 { font-size: 22px; margin: 16px 0 2px; line-height: 1.25; }
+  .lesson .src { font-size: 13px; color: var(--muted); }
+  .goal { background: var(--card); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 12px 0;
+          border-radius: 0 8px 8px 0; font-size: 14px; }
+  .pt { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-top: 10px; }
+  .pt h3 { font-size: 16px; margin: 0 0 4px; }
+  .pt .res { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .pt .res + pre { margin-top: 4px; }
+  .pt .note { margin-top: 8px; font-size: 14px; }
+  .hide-code .pt pre.c { filter: blur(6px); cursor: pointer; }
+  .hide-code .pt pre.c.show { filter: none; }
+  .acts { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 8px; }
+  .btn { border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 10px;
+         padding: 10px 14px; font-size: 14px; cursor: pointer; min-height: 44px; }
+  .btn.pri { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  .btn.okb { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .nav2 { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>데이터분석 파이썬 퀴즈</h1>
+    <div class="tabs"><button class="tab" id="tStudy">학습</button><button class="tab" id="tQuiz">퀴즈</button></div>
     <div class="score">정답 <b id="sOk">0</b> / <b id="sAll">0</b> · 연속 <b id="sStreak">0</b> · 오답노트 <b id="sWrong">0</b></div>
   </header>
-  <div class="chips" id="chips"></div>
-  <div class="log" id="log"></div>
+  <div id="studyView"></div>
+  <div id="quizView">
+    <div class="chips" id="chips"></div>
+    <div class="log" id="log"></div>
+  </div>
 </div>
 
 <div class="bar">
@@ -109,6 +150,7 @@
 </div>
 
 <script src="questions.js"></script>
+<script src="study.js"></script>
 <script>
 const TYPE_LABEL = { func: "함수/파라미터", line: "한 줄 코딩", out: "출력·shape" };
 const CMD_TYPE = { "/함수": "func", "/한줄": "line", "/출력": "out" };
@@ -268,6 +310,80 @@ document.querySelectorAll(".cmd").forEach(b => b.onclick = () => handle(b.datase
 renderScore(); renderChips();
 say(`수업자료 기반 문제 ${QUESTIONS.length}개. 답을 입력하면 바로 채점하고 다음 문제가 나와요. 함수 이름은 np. / pd. 같은 접두어나 ()를 빼고 써도 됩니다.`);
 ask(null);
+// ───────── 학습 모드 ─────────
+const STAGES = { 1: "1단계 · 파이썬 기초", 3: "2단계 · 데이터 라이브러리", 6: "3단계 · 시각화", 9: "4단계 · 텍스트 수집·시각화", 11: "5단계 · 실습 데이터" };
+let done = [];
+try { done = JSON.parse(localStorage.getItem("swai-study") || "[]"); } catch (e) {}
+let hideCode = false;
+function saveDone() { try { localStorage.setItem("swai-study", JSON.stringify(done)); } catch (e) {} }
+const sv = $("studyView");
+
+function renderStudyList() {
+  const pct = Math.round(done.length / STUDY.length * 100);
+  sv.innerHTML =
+    `<div class="prog">공부 완료 ${done.length} / ${STUDY.length} 단원<div class="track"><div class="fill" style="width:${pct}%"></div></div></div>` +
+    `<div class="units">` + STUDY.map(u =>
+      (STAGES[u.step] ? `<div class="stage">${STAGES[u.step]}</div>` : "") +
+      `<button class="unit${done.includes(u.id) ? " done" : ""}" data-id="${u.id}">` +
+      `<span class="num">${done.includes(u.id) ? "✓" : u.step}</span>` +
+      `<span class="t">${esc(u.title)}<div class="c">${esc(u.src)}</div></span></button>`
+    ).join("") + `</div>`;
+  sv.querySelectorAll(".unit").forEach(b => b.onclick = () => { location.hash = "study-" + b.dataset.id; });
+}
+
+function renderLesson(id) {
+  const i = STUDY.findIndex(u => u.id === id);
+  if (i < 0) return renderStudyList();
+  const u = STUDY[i], prev = STUDY[i - 1], next = STUDY[i + 1];
+  const isDone = done.includes(u.id);
+  const nq = QUESTIONS.filter(q => q.cat === u.cat).length;
+  sv.innerHTML =
+    `<div class="lesson${hideCode ? " hide-code" : ""}">` +
+    `<div class="acts" style="margin-top:12px"><button class="btn" id="back">← 목차</button>` +
+    `<button class="btn" id="hide">${hideCode ? "코드 보이기" : "코드 가리고 떠올리기"}</button></div>` +
+    `<h2>${u.step}. ${esc(u.title)}</h2><div class="src">자료: ${esc(u.src)}</div>` +
+    `<div class="goal">🎯 ${esc(u.goal)}</div>` +
+    u.points.map(p =>
+      `<div class="pt"><h3>${esc(p.h)}</h3>` +
+      (p.code ? `<pre class="c">${esc(p.code)}</pre>` : "") +
+      (p.out ? `<div class="res">실행 결과</div><pre class="c">${esc(p.out)}</pre>` : "") +
+      `<div class="note">💡 ${esc(p.note)}</div></div>`
+    ).join("") +
+    `<div class="acts"><button class="btn pri" id="go">이 단원 퀴즈 풀기 (${esc(u.cat)} ${nq}문제)</button>` +
+    `<button class="btn${isDone ? " okb" : ""}" id="mark">${isDone ? "✓ 공부 완료" : "공부 완료로 표시"}</button></div>` +
+    `<div class="nav2">` +
+    (prev ? `<button class="btn" data-go="${prev.id}">← ${prev.step}. ${esc(prev.title)}</button>` : "<span></span>") +
+    (next ? `<button class="btn" data-go="${next.id}">${next.step}. ${esc(next.title)} →</button>` : "<span></span>") +
+    `</div></div>`;
+  $("back").onclick = () => { location.hash = "study"; };
+  $("hide").onclick = () => { hideCode = !hideCode; renderLesson(id); };
+  sv.querySelectorAll("pre.c").forEach(p => p.onclick = () => p.classList.toggle("show"));
+  $("mark").onclick = () => {
+    done = done.includes(u.id) ? done.filter(x => x !== u.id) : [...done, u.id];
+    saveDone(); renderLesson(id);
+  };
+  $("go").onclick = () => {
+    st.cats = [u.cat]; save(); renderChips(); wrongMode = false; mode = null;
+    location.hash = "quiz";
+    say(`'${u.title}' 단원 퀴즈를 시작해요. (${u.cat} 과목)`); ask(null);
+  };
+  sv.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { location.hash = "study-" + b.dataset.go; });
+  window.scrollTo(0, 0);
+}
+
+function route() {
+  const h = location.hash.slice(1);
+  const study = h !== "quiz";
+  document.body.classList.toggle("study", study);
+  $("tStudy").classList.toggle("on", study);
+  $("tQuiz").classList.toggle("on", !study);
+  if (study) { h.startsWith("study-") ? renderLesson(h.slice(6)) : renderStudyList(); }
+  else { inp.focus(); }
+}
+$("tStudy").onclick = () => { location.hash = "study"; };
+$("tQuiz").onclick = () => { location.hash = "quiz"; };
+window.addEventListener("hashchange", route);
+route();
 </script>
 </body>
 </html>
