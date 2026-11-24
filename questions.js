@@ -63,7 +63,7 @@ const QUESTIONS = [
   { cat: "Numpy", type: "out", q: "출력 결과는?", code: "grades = np.array([88, 72, 93, 94])\nprint(grades[-1])", a: ["94"], ans: "94", tip: "-1은 마지막 요소." },
   { cat: "Numpy", type: "out", q: "출력 결과는?", code: "grades = np.array([88, 72, 93, 94])\nprint(grades[:2])", a: ["[8872]", "[88,72]"], ans: "[88 72]", tip: "시작 인덱스 생략 = 0부터." },
   { cat: "Numpy", type: "line", q: "ages 배열에서 20보다 큰 값만 뽑으세요.", a: ["ages[ages>20]"], ans: "ages[ages > 20]", tip: "논리적 인덱싱: 부울 배열을 인덱스로 사용." },
-  { cat: "Numpy", type: "out", q: "출력 결과는?", code: "ages = np.array([18, 19, 25, 30, 28])\nprint(ages > 20)", a: ["[falsefalsetruetruetrue]", "[false,false,true,true,true]"], ans: "[False False  True  True  True]", tip: "조건식 결과는 부울형 배열." },
+  { cat: "Numpy", type: "out", q: "출력 결과는?", code: "ages = np.array([18, 19, 25, 30, 28])\nprint(ages > 20)", a: ["[falsefalsetruetruetrue]", "[false,false,true,true,true]"], ans: "[False False  True  True  True]", tip: "조건식 결과는 부울형 배열. Numpy 배열은 print하면 쉼표 없이 공백으로 구분(리스트만 쉼표). True 앞 공백 2칸은 False(5글자)에 맞춘 자리 맞춤." },
   { cat: "Numpy", type: "out", q: "출력 결과는?", code: "ny = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])\nprint(ny[0][2])", a: ["3"], ans: "3", tip: "첫 번째 인덱스 = 행, 두 번째 = 열." },
   { cat: "Numpy", type: "out", q: "출력 결과는?", code: "ny = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])\nprint(ny[1, 0])", a: ["4"], ans: "4", tip: "ny[1][0] == ny[1, 0]." },
   { cat: "Numpy", type: "out", q: "출력 결과는?", code: "print(np.arange(1, 10, 2))", a: ["[13579]", "[1,3,5,7,9]"], ans: "[1 3 5 7 9]", tip: "arange(start, stop, step), stop은 미포함." },

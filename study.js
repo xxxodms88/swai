@@ -32,6 +32,7 @@ const STUDY = [
       { h: "shape · dtype", code: "a = np.array([1, 2, 3])\nb = np.array([[1, 2, 3], [2, 3, 4]])\nprint(a.shape, b.shape, b.dtype)", out: "(3,) (2, 3) int64", note: "shape은 괄호 없는 속성. (행, 열). 1차원은 (3,)." },
       { h: "zeros · ones · mean", code: "np.zeros(10)        # 0이 10개\nnp.zeros((3, 5))    # 3x5 → 괄호 두 쌍!\nnp.ones([3, 4])\nnp.array([1, 3, 5]).mean()   # 3.0", note: "np.array(1, 3, 5)는 오류 — 반드시 리스트로." },
       { h: "reshape", code: "x = np.array([1, 3, 5, 7, 9, 11]).reshape(3, 2)\nprint(x)", out: "[[ 1  3]\n [ 5  7]\n [ 9 11]]", note: "원소 개수(6) = 행 × 열 이어야 함." },
+      { h: "출력 모양 읽는 법 — 쉼표 · [ ] · 공백 기준", code: "print([1, 2, 3])               # 파이썬 리스트\nprint(np.array([1, 2, 3]))     # Numpy 배열\nprint(np.array([18, 25]) > 20) # 부울 배열\nprint(np.array([80, 100, 120]))\nprint(np.array([1.5, 2]))\nnp.array([1, 2])               # print 없이 셀 마지막 줄", out: "[1, 2, 3]\n[1 2 3]\n[False  True]\n[ 80 100 120]\n[1.5 2. ]\narray([1, 2])", note: "① 쉼표 있음 = 리스트, 쉼표 없음(공백) = Numpy 배열. ② print 없이 셀에서 그대로 보면 array([1, 2])처럼 쉼표가 붙음. ③ 공백 여러 칸은 자리 맞춤: 가장 긴 값 기준 오른쪽 정렬(False가 True보다 1글자 길어서 True 앞에 칸이 하나 더). ④ 실수 배열은 2.처럼 소수점만 찍힘." },
     ],
   },
   {
